@@ -1,0 +1,72 @@
+function printReceipt(inputs) {
+  var allItems = loadAllItems();
+  var cartItems=buildCartItems(inputs,allItems);
+  var receiptItems=buildRceciptItems(cartItems);
+  var receipts=buildRceipt(receiptItems);
+  toReceipt(receipts);
+}
+
+function buildCartItem(inputs,allItems) {
+  var cartItems = [];
+  for (var i = 0; i < allItems.length; i++) {
+    if (allItems[i].barcode === inputs[0]) {
+      cartItems[0] = {allItems: allItems[i], count: 1};
+      break;
+    }
+  }
+  return cartItems[0];
+}
+
+function buildCartItems(inputs,allItems){
+  var cartItems=[];
+  var cartItem=buildCartItem(inputs,allItems);
+  cartItems[0]=cartItem;
+  var j=0;
+  for(var i=1;i<inputs.length;i++){
+    var inputArray=inputs[i].split("-");
+    var barcode=inputArray[0];
+    var count=parseInt(inputArray[1] || 1);
+    if(barcode!=cartItems[j].allItems.barcode) {
+      for(var t=0;t<allItems.length;t++) {
+        if (allItems[t].barcode === barcode)
+          cartItems.push({allItems: allItems[t], count: count});
+      }
+      j++;
+    }
+    else{
+      cartItems[j].count++;
+    }
+  }
+  return cartItems;
+}
+
+function  buildRceciptItems(cartItems) {
+  var receiptItems = [];
+  for (var i = 0; i < cartItems.length; i++) {
+    var paycount=cartItems[i].count-parseInt(cartItems[i].count/3);
+    var subtatol= paycount*cartItems[i].allItems.price;
+    var saved=parseInt(cartItems[i].count/3)*cartItems[i].allItems.price;
+    receiptItems.push({cartItems: cartItems[i], subtatol: subtatol,saved:saved});
+  }
+  return receiptItems;
+}
+
+function  buildRceipt(receiptItems) {
+  var  tatol=0;
+  var savedtatol=0;
+  for (var i = 0; i < receiptItems.length; i++) {
+    tatol += receiptItems[i].subtatol;
+    savedtatol+=receiptItems[i].saved;
+  }
+  return {receiptItems:receiptItems,tatol:tatol,savedtatol:savedtatol};
+}
+
+function toReceipt(receipt){
+  var output=( "***<没钱赚商店>收据***\n" );
+  var s=["瓶","斤","袋"];
+  for(var q=0;q<receipt.receiptItems.length;q++){
+    output+=("名称："+receipt.receiptItems[q].cartItems.allItems.name+"，数量："+receipt.receiptItems[q].cartItems.count+s[q]+"，单价："+(receipt.receiptItems[q].cartItems.allItems.price).toFixed(2)+"(元)，小计："+(receipt.receiptItems[q].subtatol).toFixed(2)+"(元)\n");
+  }
+  output+=( "----------------------\n"+"总计："+receipt.tatol.toFixed(2)+"(元)\n"+"节省："+receipt.savedtatol.toFixed(2)+"(元)\n"+"**********************");
+  console.log(output);
+}
